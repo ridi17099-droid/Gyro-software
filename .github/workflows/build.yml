@@ -8,25 +8,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Extract zip kalau masih ada
+      - name: Extract zip
         run: |
           sudo apt-get install -y unzip
           unzip -o "*.zip" -d . 2>/dev/null || true
           ls -lh
-
+      - name: Benerin JVM Target jadi 17
+        run: |
+          echo "Nambal build.gradle.kts..."
+          find . -name "build.gradle.kts" -exec sed -i 's/JvmTarget.JVM_1_8/JvmTarget.JVM_17/g' {} \;
+          find . -name "build.gradle.kts" -exec sed -i 's/jvmTarget.*=.*".*1.8.*"/jvmTarget = \"17\"/g' {} \;
+          find . -name "build.gradle.kts" -exec sed -i 's/sourceCompatibility.*VERSION_1_8/sourceCompatibility = JavaVersion.VERSION_17/g' {} \;
+          find . -name "build.gradle.kts" -exec sed -i 's/targetCompatibility.*VERSION_1_8/targetCompatibility = JavaVersion.VERSION_17/g' {} \;
+          cat app/build.gradle.kts | head -n 100
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-
-      - name: Build APK tanpa gradlew
+      - name: Build APK
         run: gradle assembleDebug --stacktrace
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
